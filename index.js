@@ -52,8 +52,20 @@ const getP2P = async (amount) => {
   return (P2PData)
 }
 
+const getMarket = async () => {
+  const result = await axios.get('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","BUSDUSDT","BNBUSDT","ETHUSDT","USDTRUB","SHIBUSDT","BTCBUSD","BNBBTC","BTCRUB","BNBBUSD","ETHBUSD","BUSDRUB","SHIBBUSD","BNBETH","BNBRUB","ETHRUB"]')
+  return result.data
+}
+
 let currentP2P
 let currentP2P1000
+let marketPrice
+
+const getMarketPrice = new Promise(async (res, rej) => {
+  const data = await getMarket()
+  res(data)
+})
+  .then(data => marketPrice = data)
 
 const getP2PData = new Promise(async (res, rej) => {
   const data = await getP2P(0)
@@ -79,6 +91,11 @@ setInterval(() => {
     res(data)
   })
     .then(data => currentP2P1000 = data)
+  const getMarketPrice = new Promise(async (res, rej) => {
+    const data = await getMarket()
+    res(data)
+  })
+    .then(data => marketPrice = data)
 }, 180000)
 
 app.get('/', async (req, res) => {
@@ -90,21 +107,7 @@ app.get('/minThousand', async (req, res) => {
 })
 
 app.get('/market', (req, res) => {
-  axios.get('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","BUSDUSDT","BNBUSDT","ETHUSDT","USDTRUB","SHIBUSDT","BTCBUSD","BNBBTC","BTCRUB","BNBBUSD","ETHBUSD","BUSDRUB","SHIBBUSD","BNBETH","BNBRUB","ETHRUB"]')
-    .then(result => {
-      const usdt = result.data.slice(0, 6)
-      const btc = result.data.slice(6, 9)
-      const busd = result.data.slice(9, 13)
-      const bnb = result.data.slice(13, 15)
-      const eth = result.data.slice(result.data.length - 1)
-      res.send([
-        { ticker: 'USDT', data: usdt },
-        { ticker: 'BTC', data: btc },
-        { ticker: 'BUSD', data: busd },
-        { ticker: 'BNB', data: bnb },
-        { ticker: 'ETH', data: eth },
-      ])
-    })
+  res.send(marketPrice)
 })
 
 app.listen(3500, () => console.log('Server started on port 3500'))
