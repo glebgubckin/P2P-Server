@@ -54,7 +54,9 @@ const getP2P = async (amount) => {
 
 const getMarket = async () => {
   const result = await axios.get('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","BUSDUSDT","BNBUSDT","ETHUSDT","USDTRUB","SHIBUSDT","BTCBUSD","BNBBTC","BTCRUB","BNBBUSD","ETHBUSD","BUSDRUB","SHIBBUSD","BNBETH","BNBRUB","ETHRUB"]')
-  return result.data
+  const data = {}
+  result.data.forEach(el => data[el.symbol] = el.price)
+  return data
 }
 
 let currentP2P
