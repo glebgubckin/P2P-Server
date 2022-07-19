@@ -10,8 +10,7 @@ const minusOne = price => {
                        : String(price).split('.').join('')
   const digitsAfterDot = String(price).split('.')[1]?.length || 2
   if (stringNumber[0] === '0') {
-    const priceWithouZero = Number(price.split('').filter(n => n !== '.' && n !== '0').join(''))
-    return Number(priceWithouZero - 1) / 10 ** digitsAfterDot
+    return ((price * 1000000) - 1) / 1000000
   }
   return (Number(stringNumber - 1) / 10 ** (digitsAfterDot))
 }
@@ -55,7 +54,7 @@ const getP2P = async (amount) => {
 const getMarket = async () => {
   const result = await axios.get('https://api.binance.com/api/v3/ticker/price?symbols=["BTCUSDT","BUSDUSDT","BNBUSDT","ETHUSDT","USDTRUB","SHIBUSDT","BTCBUSD","BNBBTC","BTCRUB","BNBBUSD","ETHBUSD","BUSDRUB","SHIBBUSD","BNBETH","BNBRUB","ETHRUB"]')
   const data = {}
-  result.data.forEach(el => data[el.symbol] = el.price)
+  result.data.forEach(el => data[el.symbol] = Number(el.price))
   return data
 }
 
@@ -81,6 +80,9 @@ const getP2PData1000 = new Promise(async (res, rej) => {
 })
   .then(data => currentP2P1000 = data)
 
+Promise.all([getMarketPrice, getP2PData, getP2PData1000])
+  .then(() => console.log('Data has been loaded'))
+
 setInterval(() => {
   const getP2PData = new Promise(async (res, rej) => {
     const data = await getP2P(0)
@@ -98,6 +100,8 @@ setInterval(() => {
     res(data)
   })
     .then(data => marketPrice = data)
+  Promise.all([getMarketPrice, getP2PData, getP2PData1000])
+    .then(() => console.log('Data has been updated'))
 }, 180000)
 
 app.get('/', async (req, res) => {
